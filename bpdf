@@ -2,13 +2,13 @@
 
 set -e
 
+err() {
+  printf "Error: %s\n" "$*" >&2
+}
+
 if [ -z "$1" ]; then
   echo "Enter a file name." >&2
   exit
-fi
-
-if [ -z "$VIEWER" ]; then
-  VIEWER="links"
 fi
 
 if ! head -c 4 "$1" | grep -q "%PDF"; then
@@ -24,6 +24,19 @@ fi
 
 mutool convert -o /tmp/bpdf/$DATE.html -F html "$1"
 
-command -v "$VIEWER" >/dev/null 2>&1 || { echo "Links is not installed." >&2; exit; }
+if [ -z "${VIEWER:-}" ]; then
+  for v in links elinks lynx w3m firefox chromium; do
+    if command -v "$v" >/dev/null 2>&1; then
+      VIEWER=$v
+      break
+    fi
+  done
+fi
+
+[ -n "${VIEWER:-}" ] || {
+  err "No HTML viewer found (links, elinks, lynx, w3m, firefox, chromium). Set \$VIEWER."
+  exit 1
+}
+
 "$VIEWER" "/tmp/bpdf/$DATE.html"
 rm "/tmp/bpdf/$DATE.html" -f
