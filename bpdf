@@ -8,12 +8,12 @@ err() {
 
 if [ -z "$1" ]; then
   echo "Enter a file name." >&2
-  exit
+  exit 1
 fi
 
 if ! head -c 4 "$1" | grep -q "%PDF"; then
   echo "$1 is not a PDF." >&2
-  exit
+  exit 1
 fi
 
 DATE=$(date +%s)
